@@ -1039,6 +1039,7 @@ def fit(model_, y, *constants, par0=None, penalties=None, bootstrap=0, noiselvl=
             if param.normalization is not None:
                 model.addnonlinear(f'{key}_scale',lb=-np.inf,ub=np.inf,par0=1,description=f'Normalization factor of {key}')
                 getattr(model,f'{key}_scale').freeze(1)
+                model_.signature.pop() # Remove from original model (bugfix)
                 normalization = True
 
     # Get boundaries and conditions for the linear and nonlinear parameters

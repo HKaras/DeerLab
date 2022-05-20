@@ -866,6 +866,17 @@ def test_fit_evaluate_nonparametric_vec_normalized():
     assert np.allclose(response,mock_data_fcn(x))
 #================================================================
 
+def test_fit_normalized_model_unchanged(): 
+#================================================================
+    "Check that the model with normalization is unaffected by the fit"
+    model = _getmodel_axis('nonparametric_vec_normalized',vec=80)
+
+    x = np.linspace(0,10,80)
+    _ = fit(model,mock_data_fcn(x),x)
+
+    assert not hasattr(model,'dist_scale') and not 'dist_scale' in model.signature
+#================================================================
+
 def test_fit_evaluate_semiparametric(): 
 #================================================================
     "Check the evaluate method of the fitResult object for evaluation of a semiparametric model"
