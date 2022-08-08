@@ -13,7 +13,7 @@ from deerlab.constants import *
 
 #===============================================================================
 def dipolarmodel(t, r, Pmodel=None, Bmodel=bg_hom3d, npathways=1, harmonics=None, experiment=None,
-                    excbandwidth=np.inf, orisel=None, g=[ge,ge]):
+                    excbandwidth=np.inf, orisel=None, g=[ge,ge], reftime_bound = 0.05):
     """
     Generate a dipolar EPR signal model.
 
@@ -49,6 +49,9 @@ def dipolarmodel(t, r, Pmodel=None, Bmodel=bg_hom3d, npathways=1, harmonics=None
     g : scalar, 2-element array, optional
         Electron g-values of the two spins, ``[g1, g2]``. If a single g is specified, ``[g, g]`` is used.
         If not specified, g = 2.002319... is used for both spins.
+    reftime_bound : float, optional
+        If an experiment is loaded the bounds of the refocusing time are +- reftime_bound. If not 
+        specified, +- 0.05 us is used.
 
     Returns
     -------
@@ -237,8 +240,8 @@ def dipolarmodel(t, r, Pmodel=None, Bmodel=bg_hom3d, npathways=1, harmonics=None
         for n in range(npathways):
             getattr(DipolarSignal,reftime_names[n]).set(
                 par0 = experiment.reftimes[n],
-                lb = experiment.reftimes[n] - 0.05,
-                ub = experiment.reftimes[n] + 0.05
+                lb = experiment.reftimes[n] - reftime_bound,
+                ub = experiment.reftimes[n] + reftime_bound
                 )
 
     # Set other dipolar model specific attributes
