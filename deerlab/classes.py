@@ -151,8 +151,8 @@ class UQResult:
         elif uqtype == 'profile':
             xs = [self.pardist(n)[0] for n in range(nParam)]
             pardists = [self.pardist(n)[1] for n in range(nParam)]
-            means = [np.trapz(pardist*x,x) for x,pardist in zip(xs,pardists)]
-            std = [np.sqrt(np.trapz(pardist*(x-mean)**2,x)) for x,pardist,mean in zip(xs,pardists,means)]
+            means = [np.trapezoid(pardist*x,x) for x,pardist in zip(xs,pardists)]
+            std = [np.sqrt(np.trapezoid(pardist*(x-mean)**2,x)) for x,pardist,mean in zip(xs,pardists,means)]
             self.mean = means
             self.median = self.percentile(50)
             self.std = std
@@ -342,8 +342,8 @@ class UQResult:
 
         # Ensure normalization of the probability density function (if not a Dirac delta function)
         if not isdelta:
-            if np.trapz(pdf, x)!=0:
-                pdf = pdf/np.trapz(pdf, x)
+            if np.trapezoid(pdf, x)!=0:
+                pdf = pdf/np.trapezoid(pdf, x)
         
         return x, pdf
     #--------------------------------------------------------------------------------
@@ -522,7 +522,7 @@ class UQResult:
         ubm : ndarray
             Upper bounds of the values returned by ``model``, by default assumed unconstrained.
         samples : int, optional
-            Number of samples to use when propagating uncertainty. If not provided, default value is 1000.
+            Number of samples to use when propagating a bootstraped uncertainty. If not provided, default value is 1000.
         
         Returns
         -------
@@ -583,7 +583,7 @@ class UQResult:
                 # Get the parameter uncertainty distribution
                 values,pdf = self.pardist(n)
                 # Random sampling form the uncertainty distribution
-                sampled_parameters[n] =  [np.random.choice(values, p=pdf/sum(pdf)) for _ in range(Nsamples)]
+                sampled_parameters[n] = np.random.choice(values, p=pdf/sum(pdf),size=Nsamples)
             # Convert to matrix
             sampled_parameters = np.atleast_2d(sampled_parameters)
 

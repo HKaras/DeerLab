@@ -785,7 +785,7 @@ def read_pickle(filename):
 
 
 # --------------------------------------------------------------------------------------
-def sophegrid(octants,maxphi,size):
+def sophegrid(octants,maxphi,size,closed_phi=False):
     """
     Construct spherical grid over spherical angles based on input parameters. 
     The grid implemented in this function is often called the SOPHE grid [1]_. 
@@ -799,6 +799,9 @@ def sophegrid(octants,maxphi,size):
         Largest value of angle phi (radians).
     size : integer  
         Number of orientations between theta=0 and theta=pi/2. 
+    closed_phi : bool
+        Set to true if grid point at maxPhi should be included, false otherwise. Default is false.
+
 
     Returns
     -------
@@ -834,7 +837,10 @@ def sophegrid(octants,maxphi,size):
         weights = np.zeros(nOrientations)
         
         sindth2 = np.sin(dtheta/2)
-        w1 = 1.0
+        if closed_phi:
+            w1=0.5
+        else:
+            w1 = 1.0
         
         # North pole (z orientation)
         phi[0] = 0
@@ -861,10 +867,11 @@ def sophegrid(octants,maxphi,size):
         weights[idx] = sindth2*dPhi*np.concatenate([[w1], np.ones(nPhi-2), [0.5]])
         
         # Border removal
-        rmv = np.cumsum(nOct*np.arange(1,size)+1)
-        phi = np.delete(phi,rmv)
-        theta = np.delete(theta,rmv)
-        weights = np.delete(weights,rmv)
+        if not closed_phi:
+            rmv = np.cumsum(nOct*np.arange(1,size)+1)
+            phi = np.delete(phi,rmv)
+            theta = np.delete(theta,rmv)
+            weights = np.delete(weights,rmv)
 
         # For C1, add lower hemisphere
         if octants==8:
@@ -878,15 +885,15 @@ def sophegrid(octants,maxphi,size):
 
     elif octants==0: # Dinfh symmetry (quarter of meridian in xz plane)
 
-        phi = np.zeros(1,size)
+        phi = np.zeros(size)
         theta = np.linspace(0,np.pi/2,size)
         weights = -2*(2*np.pi)*np.diff(np.cos(np.concatenate([[0], np.arange(dtheta/2,np.pi/2,dtheta), [np.pi/2]]))); # sum = 4*pi
 
     elif octants==-1: # O3 symmetry (z orientation only)
         
-        phi = 0
-        theta = 0
-        weights = 4*np.pi
+        phi = np.array([0])
+        theta = np.array([0])
+        weights = np.array([4*np.pi])
 
     else:    
         raise ValueError('Unsupported value #d for octants.',octants)
