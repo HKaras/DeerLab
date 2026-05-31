@@ -501,13 +501,14 @@ def fit(model_, y, *constants, par0=None, penalties=None, bootstrap=0, noiselvl=
         fitresults.param = fitresults.paramUncert.median
 
         # Get the uncertainty estimates for the model response
-        modellb = np.min(param_uq[1].samples,axis=0)
-        modelub = np.max(param_uq[1].samples,axis=0)
+        modellb = [np.min(param_uq[n].samples,axis=0) for n in range(1,len(param_uq))]
+        modelub = [np.max(param_uq[n].samples,axis=0) for n in range(1,len(param_uq))]
             
         fitresults.model = [param_uq[n].median for n in range(1,len(param_uq))]
-        fitresults.modelUncert = UQResult('bootstrap',data=param_uq[1].samples,lb=modellb,ub=modelub)
+        fitresults.modelUncert = [UQResult('bootstrap',data=param_uq[n].samples,lb=modellb[n-1],ub=modelub[n-1]) for n in range(1,len(param_uq))]
         if len(fitresults.model)==1: 
             fitresults.model = fitresults.model[0]
+            fitresults.modelUncert = fitresults.modelUncert[0]
     # Get some basic information on the parameter vector
     keys = model._parameter_list(order='vector')
 
@@ -548,8 +549,14 @@ def fit(model_, y, *constants, par0=None, penalties=None, bootstrap=0, noiselvl=
     if len(noiselvl)==1: 
         noiselvl = noiselvl[0]
     
+
     # Generate FitResult object from all the dictionaries
     fitresult = FitResult({**FitResult_param_,**FitResult_paramuq_, **FitResult_dict,'penweights':penweights,'noiselvl':noiselvl,'paramlist':_paramlist, '_param_idx':param_idx}) 
+
+    # Add background if it is part of the model
+    if hasattr(model,'Bmodel'):
+        fitresult['bg'] = fitresult.evaluate(model.Bmodel,model.t)
+        fitresult['bgUncert'] = fitresult.propagate(model.Bmodel,model.t, samples=bootstrap)
 
     fitresult._summary = _print_fitresults(fitresult,model)
 

@@ -13,7 +13,9 @@ However, for publication-level analysis, these confidence intervals might be ina
 confidence intervals to get accurate estimates of the uncertainty. 
 Conviniently, ``fit`` integrates bootstrapping to make it accessible via the keyword argument ``bootstrap`` which specifies the
 number of samples to analyze to estimate the uncertainty. The larger this number, the more accurate 
-the confidence intervals but the longer the analysis will be. The standard for publication is typically 1000 samples. 
+the confidence intervals but the longer the analysis will be. The standard for publication is typically 250 samples. 
+
+To keep the analysis time reasonable, bootstrapping can be parallelized by specifying the number of CPU cores to use via the ``bootcores`` keyword.
 """ 
 
 import numpy as np
@@ -45,10 +47,11 @@ t = t + tmin
 r = np.linspace(2,5,100) # nm
 
 # Construct the model
-Vmodel = dl.dipolarmodel(t,r, experiment = dl.ex_4pdeer(tau1,tau2, pathways=[1]))
+experimentInfo = dl.ex_4pdeer(tau1,tau2, pathways=[1])
+Vmodel = dl.dipolarmodel(t,r, experiment = experimentInfo)
 
 # Fit the model to the data
-results = dl.fit(Vmodel,Vexp,bootstrap=20)
+results = dl.fit(Vmodel,Vexp,bootstrap=20,bootcores=4)
 
 # In this example, just for the sake of time, we will just use 20 bootstrap samples.  
 
@@ -67,9 +70,9 @@ Pci95 = results.PUncert.ci(95)
 Pci50 = results.PUncert.ci(50)
 
 # Extract the unmodulated contribution
-Bfcn = lambda mod,conc,reftime: results.P_scale*(1-mod)*dl.bg_hom3d(t-reftime,conc,mod)
-Bfit = results.evaluate(Bfcn)
-Bci = results.propagate(Bfcn).ci(95)
+Bfcn = dl.dipolarbackgroundmodel(experimentInfo)
+Bfit = results.P_scale*results.evaluate(Bfcn,t)
+Bci = results.P_scale*results.propagate(Bfcn,t).ci(95)
 
 plt.figure(figsize=[6,7])
 violet = '#4550e6'

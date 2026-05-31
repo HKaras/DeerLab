@@ -31,6 +31,7 @@ setup(
                         'setuptools>=53.0.0',
                         'numexpr>=2.7.3',
                         'quadprog>=0.1.11; python_version <= "3.10"',
+                        'h5py>=3.16'
                         ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -43,6 +44,8 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Topic :: Scientific/Engineering :: Chemistry',
     ]
 )
